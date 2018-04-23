@@ -7,8 +7,9 @@ import (
 )
 
 var (
-	tasker   = New()
-	taskName = "Test"
+	tasker     = New()
+	taskName   = "Test"
+	executable = "notepad.exe"
 )
 
 func TestQuery(t *testing.T) {
@@ -23,7 +24,7 @@ func TestCreate(t *testing.T) {
 
 	output := tasker.Create(TaskCreate{
 		Taskname:  taskName,
-		Taskrun:   "notepad.exe",
+		Taskrun:   executable,
 		Starttime: timeStr,
 		Terminate: true,
 		Endtime:   timeStrPlus,
@@ -45,7 +46,7 @@ func TestChange(t *testing.T) {
 
 	output := tasker.Change(TaskCreate{
 		Taskname:  taskName,
-		Taskrun:   "notepad.exe",
+		Taskrun:   executable,
 		Starttime: timeStr,
 		Terminate: true,
 		Endtime:   timeStrPlus,
