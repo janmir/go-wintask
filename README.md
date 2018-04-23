@@ -4,6 +4,6 @@
 
 ## Todo
 
-- [] Support exe arguments with spaces, e.g [-sd "word with spaces"].
-- [] Support for remote systems, implement user/pass and system flags.
+- [ ] Support exe arguments with spaces, e.g [-sd "word with spaces"].
+- [ ] Support for remote systems, implement user/pass and system flags.
 
