@@ -205,6 +205,10 @@ const (
 )
 
 var (
+	//Debug Enables debugging, commands won't be performed just logged.
+	Debug      = false
+	dbgMessage = "You are currently in debug mode."
+
 	//Schedules list of available scheduling scheme
 	Schedules = struct {
 		MINUTE, HOURLY, DAILY, WEEKLY, MONTHLY  string
@@ -509,11 +513,15 @@ func (task SchTask) TaskMake(taskcreate TaskCreate, command string, own bool) []
 	args := ""
 	//append the args
 	for _, arg := range taskcreate.Arguments {
-		args += arg
+		if strings.IndexRune(arg, ' ') >= 0 {
+			args += "\"" + arg + "\" "
+		} else {
+			args += arg + " "
+		}
 	}
-	run = run + " " + args
+	run = "\"" + run + "\" " + strings.TrimSpace(args)
 	run = strings.TrimSpace(run)
-	run = "\"" + run + "\""
+	//run = "\"" + run + "\""
 	cmds = append(cmds, run)
 	//markDelete bool
 	if taskcreate.MarkDelete {
@@ -521,7 +529,9 @@ func (task SchTask) TaskMake(taskcreate TaskCreate, command string, own bool) []
 		cmds = append(cmds, _Create.markDelete)
 	}
 
-	fmt.Println("Commands:", cmds)
+	if Debug {
+		fmt.Println("Commands:", cmds)
+	}
 	return cmds
 }
 
@@ -529,6 +539,11 @@ func (task SchTask) TaskMake(taskcreate TaskCreate, command string, own bool) []
 //remote system.
 func (task SchTask) Create(taskcreate TaskCreate) string {
 	cmds := task.TaskMake(taskcreate, _Create.Command, true)
+
+	if Debug {
+		return dbgMessage
+	}
+
 	cmd := exec.Command(task.bin, cmds...)
 
 	output, err := cmd.CombinedOutput()
@@ -540,6 +555,10 @@ func (task SchTask) Create(taskcreate TaskCreate) string {
 //Delete Deletes one or more scheduled tasks.
 func (task SchTask) Delete(taskname string, own, force bool) string {
 	cmd := &exec.Cmd{}
+
+	if Debug {
+		return dbgMessage
+	}
 
 	if own {
 		taskname = task.prefix + taskname
@@ -560,12 +579,19 @@ func (task SchTask) Delete(taskname string, own, force bool) string {
 //Query Enables an administrator to display the scheduled tasks on the
 //local or remote system.
 func (task SchTask) Query(name string, own bool) []Task {
-	fmt.Println(getCurrDir())
 	taskList := make([]Task, 0)
 
 	cmd := exec.Command(task.bin, _Query.Command, _Query.format, _Query.formatCSV, _Query.noHeader)
 	output, err := cmd.CombinedOutput()
 	catch(output, err)
+
+	if own {
+		tmp := name
+		if name == "*" {
+			tmp = ""
+		}
+		name = task.prefix + tmp
+	}
 
 	scanner := bufio.NewScanner(bytes.NewReader(output))
 	for scanner.Scan() {
@@ -573,14 +599,6 @@ func (task SchTask) Query(name string, own bool) []Task {
 		ts := strings.Split(tx, ",")
 
 		tname := strings.TrimSpace(ts[0])
-
-		if own {
-			tmp := name
-			if name == "*" {
-				tmp = ""
-			}
-			name = task.prefix + tmp
-		}
 
 		if name == "*" || name == "" || strings.Contains(strings.ToLower(tname), strings.ToLower(name)) {
 			dtime := strings.TrimSpace(ts[1])
@@ -596,6 +614,11 @@ func (task SchTask) Query(name string, own bool) []Task {
 //by a scheduled task.
 func (task SchTask) Change(taskcreate TaskCreate, own bool) string {
 	cmds := task.TaskMake(taskcreate, _Change.Command, own)
+
+	if Debug {
+		return dbgMessage
+	}
+
 	cmd := exec.Command(task.bin, cmds...)
 
 	output, err := cmd.CombinedOutput()
@@ -606,6 +629,11 @@ func (task SchTask) Change(taskcreate TaskCreate, own bool) string {
 
 //Run Runs a scheduled task on demand.
 func (task SchTask) Run(taskName string, own bool) string {
+
+	if Debug {
+		return dbgMessage
+	}
+
 	if own {
 		taskName = task.prefix + taskName
 	}
@@ -619,6 +647,11 @@ func (task SchTask) Run(taskName string, own bool) string {
 
 //End Stops a running scheduled task.
 func (task SchTask) End(taskName string, own bool) string {
+
+	if Debug {
+		return dbgMessage
+	}
+
 	if own {
 		taskName = task.prefix + taskName
 	}
@@ -632,6 +665,11 @@ func (task SchTask) End(taskName string, own bool) string {
 
 //ShowSid Shows the SID for the task's dedicated user.
 func (task SchTask) ShowSid(taskName string, own bool) string {
+
+	if Debug {
+		return dbgMessage
+	}
+
 	if own {
 		taskName = task.prefix + taskName
 	}
