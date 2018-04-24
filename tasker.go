@@ -358,15 +358,17 @@ var (
 
 //SchTask definitions
 type SchTask struct {
-	bin    string
-	prefix string
+	bin           string
+	prefix        string
+	compatibility bool
 }
 
 //New creates a new tasker object
-func New() SchTask {
+func New(com bool) SchTask {
 	return SchTask{
-		bin:    taskerFile,
-		prefix: "go-wintask-",
+		bin:           taskerFile,
+		prefix:        "go-wintask-",
+		compatibility: com,
 	}
 }
 
@@ -581,7 +583,13 @@ func (task SchTask) Delete(taskname string, own, force bool) string {
 func (task SchTask) Query(name string, own bool) []Task {
 	taskList := make([]Task, 0)
 
-	cmd := exec.Command(task.bin, _Query.Command, _Query.format, _Query.formatCSV, _Query.noHeader)
+	cmd := &exec.Cmd{}
+	if task.compatibility {
+		cmd = exec.Command(task.bin, _Query.Command, _Query.format, _Query.formatCSV)
+	} else {
+		cmd = exec.Command(task.bin, _Query.Command, _Query.format, _Query.formatCSV, _Query.noHeader)
+	}
+
 	output, err := cmd.CombinedOutput()
 	catch(output, err)
 
@@ -596,6 +604,12 @@ func (task SchTask) Query(name string, own bool) []Task {
 	scanner := bufio.NewScanner(bytes.NewReader(output))
 	for scanner.Scan() {
 		tx := strings.Replace(scanner.Text(), "\"", "", -1)
+
+		//skip
+		if task.compatibility && strings.HasPrefix(tx, "TaskName") {
+			continue
+		}
+
 		ts := strings.Split(tx, ",")
 
 		tname := strings.TrimSpace(ts[0])

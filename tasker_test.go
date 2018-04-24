@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	tasker     = New()
+	tasker     = New(true)
 	taskName   = "Test"
 	executable = "notepad.exe"
 )
