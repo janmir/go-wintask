@@ -75,6 +75,7 @@ type TaskCreate struct {
 	//					  For v2 tasks, "NT AUTHORITY\LOCALSERVICE" and
 	//					  "NT AUTHORITY\NETWORKSERVICE" are also available as well
 	//					  as the well known SIDs for all three.
+	Username string
 
 	// /RP  [password]    Specifies the password for the "run as" user.
 	//					  To prompt for the password, the value must be either
@@ -249,6 +250,7 @@ var (
 	/*************Create**************/
 	_Create = struct {
 		Command     string
+		username    string
 		password    string
 		schedule    string
 		modifier    string
@@ -273,6 +275,7 @@ var (
 		delaytime   string
 	}{
 		Command:     "/CREATE",
+		username:    "/RU",
 		password:    "/RP",
 		schedule:    "/SC",
 		modifier:    "/MO",
@@ -398,6 +401,10 @@ func (task SchTask) TaskMake(taskcreate TaskCreate, command string, own bool) []
 	/****make commands****/
 	//Append the command
 	cmds = append(cmds, command)
+	if taskcreate.Username != "" {
+		cmds = append(cmds, _Create.username)
+		cmds = append(cmds, taskcreate.Username)
+	}
 	//password string
 	if taskcreate.Password != "" {
 		cmds = append(cmds, _Create.password)
